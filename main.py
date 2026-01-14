@@ -52,7 +52,7 @@ def menu_principal():
                 menu_principal_OrangeMoney(solde,mot_de_passe,liste_transfert)
 
             case '0' :
-                break
+                exit()
 
             case _ :
                 print("Choix invalide") 
@@ -147,6 +147,7 @@ def verifier_mot_de_passe(mot_de_passe) :
                 print(f"Il vous reste {tentative} tentative.s")
             else :
                 print("Trop de tentatives!!!")
+                print('*' * 50)
                 exit()
     return verif
 
@@ -192,9 +193,11 @@ def achat_credit(solde,mot_de_passe) :
                     solde['solde'] -= montant
                     print(f"Recharge credit : {montant}FCFA")
                     mis_a_jour_fichier(fichier_solde,solde)
+                    print('*' * 50)
                     break
                 else :
                     print("Le solde de votre compte est insuffisant")
+                    break
             else :
                 exit()
         else :
@@ -227,9 +230,12 @@ def transert_argent(solde,password,liste):
                         liste.append(transfert)
                         mis_a_jour_fichier(fichier_transfert,liste)
                         print(f"Transfert de {montant}FCFA effectue avec succes")
+                        print('*' * 50)
                         break
                     else :
                         print("Le solde de votre compte est insuffisant")
+                        print('*' * 50)
+
                         break
                 else :
                     break
@@ -269,6 +275,7 @@ def historique_transfert():
             print(f"Numero : {transfert['numero']}")
             print(f"Montant : {transfert['montant']}")
             print(f"Etat : {transfert['etat']}")
+            print('*' * 50)
                 
 
 
