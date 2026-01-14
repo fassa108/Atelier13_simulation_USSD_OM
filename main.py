@@ -3,34 +3,42 @@ import os
 
 
 solde_dict = {
-    "solde" : 50000
+    "solde" : 50000,
+    "liste_transfert" : []
+
 }
 
 fichier_solde = "data_solde.json"
-fichier_transfert = "data_transfert.json"
+# fichier_transfert = "data_transfert.json"
 if not os.path.exists(fichier_solde) :
     with open(fichier_solde,'w+') as file :
         json.dump(solde_dict,file,indent = 4)
 
-if not os.path.exists(fichier_transfert):
-    with open(fichier_transfert, 'w') as file:
-        json.dump([], file, indent=4)
+# if not os.path.exists(fichier_transfert):
+#     with open(fichier_transfert, 'w') as file:
+#         json.dump([], file, indent=4)
 
 mot_de_passe = 1234
 
 
 
 def mis_a_jour_fichier(fichier,contenu) :
-    with open (fichier,'w') as file :
-        json.dump(contenu,file,indent = 4)
+    try :
+        with open (fichier,'w') as file :
+            json.dump(contenu,file,indent = 4)
+    except :
+        print("Erreur d'ecriture")
 
 def lire_fichier(fichier):
-    with open(fichier,'r') as file :
-        contenu = json.load(file)   
+    try :
+        with open(fichier,'r') as file :
+            contenu = json.load(file)
+    except :
+        print("Erreur de Lecture") 
 
     return contenu
-
-liste_transfert = lire_fichier(fichier_transfert)
+donnee = lire_fichier(fichier_solde)
+liste_transfert = donnee['liste_transfert']
 
 solde = lire_fichier(fichier_solde)
 
@@ -49,7 +57,7 @@ def menu_principal():
         match choix :
             case "#144#" :
                 print("Beinvenue")
-                menu_principal_OrangeMoney(solde,mot_de_passe,liste_transfert)
+                menu_principal_OrangeMoney(mot_de_passe)
 
             case '0' :
                 exit()
@@ -57,7 +65,7 @@ def menu_principal():
             case _ :
                 print("Choix invalide") 
 
-def menu_principal_OrangeMoney(solde,mot_de_passe,liste_transfert) :
+def menu_principal_OrangeMoney(mot_de_passe) :
     
     
     print("*******************************************************\n" \
@@ -77,29 +85,32 @@ def menu_principal_OrangeMoney(solde,mot_de_passe,liste_transfert) :
         
         match choix :
             case '1' :
-                solde_compte(solde,mot_de_passe)
+                solde_compte(mot_de_passe)
                 redirection()
             case '2' :
-                achat_credit(solde,mot_de_passe)
+                achat_credit(mot_de_passe)
                 solde = lire_fichier(fichier_solde)
                 print(f"Nouveau solde : {solde['solde']}FCFA")
                 redirection()
             case '3' :
-                achat_forfait(solde,mot_de_passe)
+                achat_forfait(mot_de_passe)
                 solde = lire_fichier(fichier_solde)
                 print(f"Nouveau solde : {solde['solde']}FCFA")
                 redirection()
             case '4' :
-                liste_transfert = lire_fichier(fichier_transfert)
-                transert_argent(solde,mot_de_passe,liste_transfert)
+                transert_argent(mot_de_passe)
                 solde = lire_fichier(fichier_solde)
                 print(f"Nouveau solde : {solde['solde']}FCFA")
                 redirection()
             case '5' :
-                liste_transfert = lire_fichier(fichier_transfert)
+                donnee = lire_fichier(fichier_solde)
+                liste_transfert = donnee['liste_transfert']
+                
                 if len(liste_transfert) > 0 :
-                    solde = annuler_transfert(liste_transfert,mot_de_passe,solde)
-                    print(f"Nouveau solde : {solde['solde']}FCFA")
+                    annuler_transfert(mot_de_passe)
+                    donnee = lire_fichier(fichier_solde)
+                    liste_transfert = donnee['liste_transfert']
+                    print(f"Nouveau solde : {donnee['solde']}FCFA")
                 else :
                     print("Pas d'annulation")
                 redirection()
@@ -123,9 +134,8 @@ def redirection ():
         "9 Quitter")
     match choix :
         case '0':
-            solde = lire_fichier(fichier_solde)
-            liste_transfert = lire_fichier(fichier_transfert)
-            menu_principal_OrangeMoney(solde,mot_de_passe,liste_transfert)
+            
+            menu_principal_OrangeMoney(mot_de_passe)
         case '9':
             exit()
         case _ :
@@ -169,19 +179,16 @@ def verifier_numero() :
         
 
 
-def solde_compte(solde,mot_passe) :
+def solde_compte(mot_passe) :
     print("******* Solde du compte *******")
     
     if verifier_mot_de_passe(mot_passe) :
-        try :
-            with open(fichier_solde,'r') as file :
-                solde = json.load(file)
-                print(f"Le solde de vore compte est de {solde['solde']}FCFA.")
+        
+        solde = lire_fichier(fichier_solde)
+        print(f"Le solde de vore compte est de {solde['solde']}FCFA.")
 
-        except :
-            print("erreur de chargement!!!")
 
-def achat_credit(solde,mot_de_passe) :
+def achat_credit(mot_de_passe) :
     print("******* Achat de credit *******")
     while True :
         montant = input("Veuillez saisir le montant de recharge : ")
@@ -204,7 +211,7 @@ def achat_credit(solde,mot_de_passe) :
             print("Le montant doit etre un nombre positif!")
 
 
-def transert_argent(solde,password,liste):
+def transert_argent(password):
     transfert = {}
     verif_num,numero = verifier_numero()
     if verif_num:
@@ -221,14 +228,15 @@ def transert_argent(solde,password,liste):
                         solde['solde'] -= montant
                     
                         mis_a_jour_fichier(fichier_solde,solde)
-                        liste = lire_fichier(fichier_transfert)
+                        donnee = lire_fichier(fichier_solde)
+                        liste = donnee['liste_transfert']
                         
                         transfert['id'] = len(liste) + 1
                         transfert['numero'] = numero
                         transfert['montant'] = montant
                         transfert['etat'] = "Effectue"
                         liste.append(transfert)
-                        mis_a_jour_fichier(fichier_transfert,liste)
+                        mis_a_jour_fichier(fichier_solde,donnee)
                         print(f"Transfert de {montant}FCFA effectue avec succes")
                         print('*' * 50)
                         break
@@ -243,21 +251,23 @@ def transert_argent(solde,password,liste):
                 print("Le montant doit etre un nombre positif!")
 
 
-def annuler_transfert(liste,mot_depasse,solde) :
-    liste = lire_fichier(fichier_transfert)
+def annuler_transfert(lmot_depasse) :
+    donnee = lire_fichier(fichier_solde)
+    liste = donnee['liste_transfert']
     if liste[-1]['etat'] == "Annule" :
         print("Le dernier transfert a deja ete annule")
     else :
         choix = input("1 : confirmer\n2 : Annuler")
         match choix :
             case '1' :
-                if verifier_mot_de_passe(mot_depasse) :
-                    solde = lire_fichier(fichier_solde)
-                    solde['solde'] += liste[-1]['montant']
-                    mis_a_jour_fichier(fichier_solde,solde)
+                if verifier_mot_de_passe(mot_de_passe) :
+                    # solde = lire_fichier(fichier_solde)
+                    donnee['solde'] += liste[-1]['montant']
+                    print(donnee)
+                    # mis_a_jour_fichier(fichier_solde,solde)
                     print(f"Le transfert de {liste[-1]['montant']}FCFA a ete annuler avec succes!")
                     liste[-1]['etat'] = "Annule"
-                    mis_a_jour_fichier(fichier_transfert,liste)
+                    mis_a_jour_fichier(fichier_solde,donnee)
                     for transfert in liste :
                         print(f"{transfert['id']} | montant : {transfert['montant']} | destinataire : {transfert['numero']}")
                         
@@ -266,8 +276,10 @@ def annuler_transfert(liste,mot_depasse,solde) :
 
 
         return solde
+
 def historique_transfert():
-    liste = lire_fichier(fichier_transfert)
+    donnee = lire_fichier(fichier_solde)
+    liste = donnee['liste_transfert']
     if len(liste) == 0 :
         print("La liste de transfert est vide")
     else:
@@ -282,7 +294,7 @@ def historique_transfert():
 
 
 
-def achat_forfait(solde, mot_depasse):
+def achat_forfait(mot_depasse):
     liste_forfait =[{
         "id" : 1,
         "taille" : "100 Mo",
