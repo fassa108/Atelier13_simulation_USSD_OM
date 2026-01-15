@@ -30,11 +30,16 @@ def mis_a_jour_fichier(fichier,contenu) :
         print("Erreur d'ecriture")
 
 def lire_fichier(fichier):
+    global solde_dict
     try :
         with open(fichier,'r') as file :
             contenu = json.load(file)
-    except :
-        print("Erreur de Lecture") 
+    except (json.JSONDecodeError):
+        # print("Erreur de lecture")
+        mis_a_jour_fichier(fichier,solde_dict) 
+        with open(fichier,'r') as file :
+            contenu = json.load(file)
+            # print(contenu)
 
     return contenu
 donnee = lire_fichier(fichier_solde)
